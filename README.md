@@ -28,6 +28,21 @@ Lightweight & Fast unofficial REST API for Trade Republic
 
 Follow the on-screen instructions to scan the QR code with the Trade Republic app. Once authenticated, the API server starts automatically.
 
+### Local read-only boundary
+
+When running this checkout/fork, it behaves as a local, read-only wrapper by default. The published PyPI package is unchanged by this work. The HTTP server binds
+to `127.0.0.1`. Only endpoints listed in `trade_republic_uapi/access_policy.py`
+are enabled; other endpoints, including mutations, return HTTP 403 before any
+broker request. Some upstream examples below are therefore disabled by default.
+Set `TR_UAPI_ALLOW_WRITES=1` only when you explicitly opt into the existing
+write routes. The broker session itself still has the permissions granted by
+Trade Republic; this wrapper does not reduce those upstream permissions.
+
+The local fork does not add live login or independent broker reads. Session
+authentication remains owned by the existing browser flow. Timeout handling,
+reconnection, and pagination remain pending validation for the caller; this
+change does not claim those behaviors as implemented.
+
 ## Interactive API documentation
 
 Once the server is running, interactive documentation where you can browse every endpoint, see the request/response schemas, try requests live, and view example payloads is available at:
@@ -143,8 +158,8 @@ The examples below use fictitious values (fake ISIN, account number, order IDs).
 ### curl
 
 ```bash
-# Personal details
-curl -s -X GET "http://127.0.0.1:8000/api/personal-details" -H "X-API-Key: <api_key>"
+# Accounts
+curl -s -X GET "http://127.0.0.1:8000/api/accounts" -H "X-API-Key: <api_key>"
 
 # Support tickets
 curl -s -X GET "http://127.0.0.1:8000/api/tickets" -H "X-API-Key: <api_key>"
@@ -262,4 +277,3 @@ curl -s -X POST "http://127.0.0.1:8000/api/delete-price-alarm" \
   -H "X-API-Key: <api_key>" \
   -d '{"alarmId": "9f8e7d6c-5b4a-3210-fedc-ba0987654321"}'
 ```
-

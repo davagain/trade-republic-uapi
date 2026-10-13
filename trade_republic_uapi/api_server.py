@@ -4,7 +4,7 @@ import uuid
 from typing import Any, Literal, cast
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -25,7 +25,7 @@ APPROVED_VALUES = Literal["stock", "fund", "derivative", "bond", "crypto", "priv
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
 
 
-def verify_api_key(api_key: str = Depends(api_key_header)) -> str:
+def verify_api_key(request: Request, api_key: str = Depends(api_key_header)) -> str:
     expected_key = os.getenv("TR_UAPI_KEY")
 
     if not expected_key or not api_key:
@@ -40,6 +40,9 @@ def verify_api_key(api_key: str = Depends(api_key_header)) -> str:
             detail="API key is missing or invalid",
         )
 
+    from trade_republic_uapi.access_policy import allowed
+    if not allowed(request.url.path, os.getenv("TR_UAPI_ALLOW_WRITES") == "1"):
+        raise HTTPException(status_code=403, detail="Endpoint disabled by local read-only policy")
     return api_key
 
 
@@ -969,4 +972,4 @@ async def delete_price_alarm(params: PriceAlarmId):
 
 
 def start_api_server(port: int):
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="warning")
+    uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")

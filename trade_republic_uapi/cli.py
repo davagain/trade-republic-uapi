@@ -20,7 +20,7 @@ from rich.rule import Rule
 from trade_republic_uapi.api_server import start_api_server
 from trade_republic_uapi.auth import (
     check_authentification,
-    get_local_ip,
+    save_storage_state,
     simulate_human,
 )
 from trade_republic_uapi.paths import auth_path, server_log_path, server_pid_path
@@ -196,7 +196,8 @@ def main():
     )
 
     data_folder = Path("data")
-    data_folder.mkdir(parents=True, exist_ok=True)
+    data_folder.mkdir(parents=True, mode=0o700, exist_ok=True)
+    data_folder.chmod(0o700)
 
     time.sleep(2)
 
@@ -290,7 +291,7 @@ def main():
 
                 if page.url != initial_url:
                     time.sleep(4)
-                    _ = context.storage_state(path=auth_path)
+                    save_storage_state(context)
                     console.print(
                         f"[bold {CLI_COLOR_STYLE}]\n🎉 Authentification successful 🎉[/bold {CLI_COLOR_STYLE}]"
                     )
@@ -305,7 +306,7 @@ def main():
 
                     port = load_preferences().get("api_port")
 
-                    local_ip = get_local_ip()
+                    local_ip = "127.0.0.1"
                     console.print(
                         Panel.fit(
                             f"[bold {CLI_COLOR_STYLE}]🚀 API Gateway server is running in background![/bold {CLI_COLOR_STYLE}]\n\n" +
@@ -337,7 +338,7 @@ def main():
 
                     time.sleep(2)
                     console.print(
-                        f'[bold {CLI_COLOR_STYLE}]\n😉 Typing [code]curl -s -X GET "http://127.0.0.1:{port}/api/personal-details" -H "X-API-Key: <api_key>"[/code] is a good way to test the API.[/bold {CLI_COLOR_STYLE}]'
+                        f'[bold {CLI_COLOR_STYLE}]\n😉 Typing [code]curl -s -X GET "http://127.0.0.1:{port}/api/accounts" -H "X-API-Key: <api_key>"[/code] is a good way to test the API.[/bold {CLI_COLOR_STYLE}]'
                     )
                     console.print(
                         f"[bold {CLI_COLOR_STYLE}]\n📚 All endpoints are documented at [link=http://{local_ip}:{port}/docs]http://{local_ip}:{port}/docs[/link].\n[/bold {CLI_COLOR_STYLE}]"
