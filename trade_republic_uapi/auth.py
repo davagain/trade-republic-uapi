@@ -7,7 +7,7 @@ from playwright.sync_api import BrowserContext, Page
 from playwright.sync_api import Error as PlaywrightError
 
 from trade_republic_uapi.fetch import decode_cookie, get_cookies
-from trade_republic_uapi.paths import auth_path
+from trade_republic_uapi.paths import save_storage_state
 
 
 def get_local_ip():
@@ -54,6 +54,6 @@ def check_authentification(context: BrowserContext):
     time_left = exp - now
 
     if time_left < 100:
-        _ = context.storage_state(path=auth_path)
+        save_storage_state(context)
 
     return max(0, time_left) != 0
